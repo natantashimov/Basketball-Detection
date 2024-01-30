@@ -1,23 +1,23 @@
+import os
 import cv2
 import numpy as np
 import csv
 
-# Path to your video file
+# Input video path
 video_path = './court/splash.mp4'
 
 # Define the size and circularity thresholds for filtering
 min_ball_radius = 13
-max_ball_radius = 18
+max_ball_radius = 19
 circularity_threshold = 0.8
 
 # Define the maximum distance between consecutive ball detections
 max_distance = 100
 
 # Define the range for initial ball detection location
-initial_detection_range_x = (900, 1200)  # Adjust the values as needed
-initial_detection_range_y = (350, 500)  # Adjust the values as needed
-# initial_detection_range_x = (450, 600)  # Adjust the values as needed
-# initial_detection_range_y = (250, 500)  # Adjust the values as needed
+initial_detection_range_x = (1000, 1600)  # Adjust the values as needed
+initial_detection_range_y = (200, 350)  # Adjust the values as needed
+
 
 def detect_ball_coordinates(frame, last_ball_coordinates):
     # Convert the frame to grayscale
@@ -30,13 +30,13 @@ def detect_ball_coordinates(frame, last_ball_coordinates):
     circles = cv2.HoughCircles(
         blurred,
         cv2.HOUGH_GRADIENT,
-        dp=1, minDist=50, param1=50, param2=25,
+        dp=1, minDist=20, param1=20, param2=22,
         minRadius=min_ball_radius, maxRadius=max_ball_radius
     )
     if circles is not None:
         # Extract the coordinates and radius of the detected balls
         circles = np.round(circles[0, :]).astype("int")
-        print(circles)
+        # print(circles)
 
         # Filter and verify the ball detections
         for (x, y, radius) in circles:
@@ -82,16 +82,25 @@ def detect_ball_coordinates(frame, last_ball_coordinates):
     return None
 
 
+# Extract video file name without extension
+video_file_name = os.path.splitext(os.path.basename(video_path))[0]
+
+# Generate CSV file name with suffix
+file_name = f"locations_{video_file_name}.csv"
+
+# Output video path
+output_path = f"{video_file_name}.avi"
+
 # Load the video file
 cap = cv2.VideoCapture(video_path)
 
 # Create a CSV file for storing the ball coordinates
-csv_file = open('locations.csv', 'w', newline='')
+csv_file = open(file_name, 'w', newline='')
 csv_writer = csv.writer(csv_file)
 csv_writer.writerow(['X', 'Y'])
 posList = []
 fourcc = cv2.VideoWriter_fourcc(*'MJPG')
-out = cv2.VideoWriter('output.avi', fourcc, 20.0, (int(cap.get(3)), int(cap.get(4))))
+out = cv2.VideoWriter(output_path, fourcc, 20.0, (int(cap.get(3)), int(cap.get(4))))
 
 frame_count = 0
 last_ball_coordinates = None
@@ -113,13 +122,16 @@ while cap.isOpened():
         csv_writer.writerow([x, 1080 - y])
 
         last_ball_coordinates = ball_coordinates
+    else:
+        x, y = -float('inf'), -float('inf')
+        csv_writer.writerow([x, y])
 
     for i, pos in enumerate(posList):
         cv2.circle(frame, pos, 3, (0, 255, 0), -1)
-        if i == 0:
-            cv2.line(frame, pos, pos, (0, 0, 255), 2)
-        else:
-            cv2.line(frame, pos, posList[i - 1], (0, 0, 255), 2)
+        # if i == 0:
+        #    cv2.line(frame, pos, pos, (0, 0, 255), 2)
+        # else:
+        #    cv2.line(frame, pos, posList[i - 1], (0, 0, 255), 2)
 
     # Display the frame with ball coordinates
     cv2.imshow('Video', frame)
@@ -129,6 +141,7 @@ while cap.isOpened():
         break
 
     frame_count += 1
+print(len(posList))
 
 cap.release()
 csv_file.close()

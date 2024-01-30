@@ -16,7 +16,7 @@ with open("coco.names", "r") as f:
 confidence_threshold = 0.05
 
 # Set the non-maximum suppression threshold
-nms_threshold = 0.2
+nms_threshold = 0.005
 
 max_distance = 300
 
@@ -90,7 +90,7 @@ def detect_ball_coordinates(frame, last_ball_coordinates):
 
 
 # Input video path
-video_path = "./sportek/3pt_25.mov"
+video_path = "C:/Users/natan/PycharmProjects/basketball/sportek/3pt_26.mov"
 
 # Extract video file name without extension
 video_file_name = os.path.splitext(os.path.basename(video_path))[0]
@@ -135,10 +135,10 @@ while True:
 
     for i, pos in enumerate(posList):
         cv2.circle(frame, pos, 3, (0, 255, 0), -1)
-        if i == 0:
-            cv2.line(frame, pos, pos, (0, 0, 255), 2)
-        else:
-            cv2.line(frame, pos, posList[i - 1], (0, 0, 255), 2)
+        # if i == 0:
+        #     cv2.line(frame, pos, pos, (0, 0, 255), 2)
+        # else:
+        #     cv2.line(frame, pos, posList[i - 1], (0, 0, 255), 2)
         # x, y = ball_coordinates
         # cv2.circle(frame, (x, y), 10, (0, 255, 0), 2)
 
@@ -149,6 +149,7 @@ while True:
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 
+print(len(posList))
 cap.release()
 out.release()
 csv_file.close()
